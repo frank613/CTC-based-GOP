@@ -17,10 +17,10 @@ python analyze_real_auc.py ./gops/cmu_gv3.gop_new uttid.temp label_mapped.txt ./
 An example call for evaluating the simulated errors of CMU-kids: <br />
 python sim-ctc-af-SDI.py ./cmu.all.ctm ./models/ctc-en/ ./data/local/cmu/train/ ./output/out_cmu_all_gv2.txt
 
-And then <br />
+And then: <br />
 python cal_auc.py --filter ./error_uttid.txt output/out_cmu_all_gv2.txt ./filtered_out_cmu_all_gv2.json
 
-Example calls for evaluting the SPO762 <br />
+Example calls for evaluting the Speakocean762: <br />
 python evaluate_gop_scalar.py ./gops/so762_gv1.gop ./metadata.csv ./utt2dur_train ./utt2dur_test <br />
 python evaluate_gop_feats.py ./gops/all_gop.feats ./metadata.csv ./utt2dur_train ./utt2dur_test
 
