@@ -24,4 +24,6 @@ Example calls for evaluting the Speakocean762: <br />
 python evaluate_gop_scalar.py ./gops/so762_gv1.gop ./metadata.csv ./utt2dur_train ./utt2dur_test <br />
 python evaluate_gop_feats.py ./gops/all_gop.feats ./metadata.csv ./utt2dur_train ./utt2dur_test
 
+## The essential data related files for running the script can be found in the folder [data] and [metadata]
 
+## The ASR-CTC training script is provided in the folder [ctc-ASR-training]
