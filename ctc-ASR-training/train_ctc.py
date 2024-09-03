@@ -8,7 +8,7 @@ from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, AutoCon
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer
 from pathlib import Path
 import pandas as pd
-from my_w2v2_package.custom_processor import My_Wav2Vec2CTCTokenizer,My_Wav2Vec2Processor
+from custom_processor import My_Wav2Vec2CTCTokenizer,My_Wav2Vec2Processor
 
 
 
