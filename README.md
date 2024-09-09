@@ -2,7 +2,7 @@
 This repo relates to the paper "A Framework for Phoneme-Level Pronunciation Assessment Using CTC" for INTERSPEECH2024 <br />
 {xinwei.cao, zijian.fan, torbjorn.svendsen, giampiero.salvi}@ntnu.no
 
-## In the folder:generate-GOP there are the scripts for generating the scalar GOPs
+## In the folder:[generate-GOP] there are the scripts for generating the scalar GOPs
 An example call: <br />
 python gop-ctc-align-SD.py ./transcriptions/cmu.ctm ./out-models/rCTC-large-from-CTC/checkpoint-6500/  data-new/data-for-w2v2/cmu-kids/metadata.csv ./out-models/rCTC-large-from-CTC/processor_config_gop/ NONE ./test-gop-normnew/test
 
