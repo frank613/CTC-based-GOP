@@ -1,5 +1,5 @@
 # CTC-based-GOP
-This repo related to the paper "A Framework for Phoneme-Level Pronunciation Assessment Using CTC" for INTERSPEECH2024 <br />
+This repo relates to the paper "A Framework for Phoneme-Level Pronunciation Assessment Using CTC" for INTERSPEECH2024 <br />
 {xinwei.cao, zijian.fan, torbjorn.svendsen, giampiero.salvi}@ntnu.no
 
 ## In the folder:generate-GOP there are the scripts for generating the scalar GOPs
