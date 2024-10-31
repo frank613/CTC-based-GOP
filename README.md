@@ -39,4 +39,4 @@ python evaluate_gop_feats.py ./gops/all_gop.feats ./metadata.csv ./utt2dur_train
 ## The essential data related files for running the script can be found in the folder [data] and [metadata]
 
 ## The ASR-CTC fine-tuning script is provided in the folder [ctc-ASR-training]
-## As written in the paper. We fine-tuned a wav2vec2 model using "train-100-clean" from Librispeech. The model files are provided in the folder [models]
+## As written in the paper, we fine-tuned a wav2vec2 model using "train-100-clean" from Librispeech. The model files are provided in the folder [models]
