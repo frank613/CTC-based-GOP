@@ -2,8 +2,6 @@
 This repo relates to the paper "A Framework for Phoneme-Level Pronunciation Assessment Using CTC" for INTERSPEECH2024 <br />
 {xinwei.cao, zijian.fan, torbjorn.svendsen, giampiero.salvi}@ntnu.no
 
-## We fine-tuned a wav2vec2 model using "train-100-clean" from Librispeech and the model files are in the folder [models]
-
 ## In the folder:[generate-GOP] there are the scripts for generating the scalar GOPs
 An example call: <br />
 python gop-ctc-af-SD.py ./metadata/cmu-kids/cmu.ctm ./models/checkpoint-8000/  data/cmu-kids/metadata.csv ./models/processor_config_gop/ NONE ./test-gop-normnew/test
@@ -40,4 +38,5 @@ python evaluate_gop_feats.py ./gops/all_gop.feats ./metadata.csv ./utt2dur_train
 
 ## The essential data related files for running the script can be found in the folder [data] and [metadata]
 
-## The ASR-CTC training script is provided in the folder [ctc-ASR-training]
+## The ASR-CTC fine-tuning script is provided in the folder [ctc-ASR-training]
+## As written in the paper. We fine-tuned a wav2vec2 model using "train-100-clean" from Librispeech. The model files are provided in the folder [models]
