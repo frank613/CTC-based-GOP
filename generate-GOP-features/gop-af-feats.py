@@ -88,83 +88,6 @@ def ctc_loss(params, seq, blank=0):
 	
     return forward_prob
 
-##check if the last dim > 0, return the sum of last dimension (collect the posterior for each possible tokens),the zero_pos is excluded in the sum.
-##zero pos must "-1" because we already remove the blank token in the last dimension
-def check_arbitrary(in_alphas, s, t, zero_pos=None):
-    if torch.count_nonzero(in_alphas[s,t]) > 1:
-        if zero_pos:
-            mask = torch.ones_like(in_alphas[s,t])
-            mask[zero_pos] = 0
-            return sum(in_alphas[s,t][mask.bool()])
-        else:
-            return sum(in_alphas[s,t][:])
-    else:
-        return False
-    
-##return only likeli, given the postion for arbitrary state
-def ctc_loss_denom(params, seq, pos, blank=0):
-    """
-    CTC loss function.
-    params - n x m matrix of n-D probability distributions(softmax output) over m frames.
-    seq - sequence of phone id's for given example.
-    Returns objective, alphas and betas.
-    """
-    seqLen = seq.shape[0] # Length of label sequence (# phones)
-    numphones = params.shape[0] # Number of labels
-    L = 2*seqLen + 1 # Length of label sequence with blanks
-    T = params.shape[1] # Length of utterance (time)
-    P = params.shape[0] - 1 # number of non-blank tokens    
-
-    ##extend the tensor to save "arbitrary state"
-    alphas = torch.zeros((L,T,P)).double()
-
-    # Initialize alphas and forward pass 
-    alphas[0,0,0] = params[blank,0]
-    if pos == 0:
-        alphas[1,0] = params[1:,0]  #an list of non-blank 
-    else:
-        alphas[1,0,0] = params[seq[0],0]
-
-    for t in range(1,T):
-        start = max(0,L-2*(T-t)) 
-        ##end = min(2*t+2,L)
-        for s in range(start,L):
-            l = int((s-1)/2)
-            # blank
-            if s%2 == 0:
-                if s==0:
-                    alphas[s,t,0] = alphas[s,t-1,0] * params[blank,t]
-                else:
-                    sum = check_arbitrary(alphas, s-1, t-1)
-                    if sum: ## the first blank(for current t) after the arbitrary state,need to collect the probability from the additional dimension
-                        alphas[s,t,0] = (alphas[s,t-1,0] + sum) * params[blank,t]  
-                    else:
-                        alphas[s,t,0] = (alphas[s,t-1,0] + alphas[s-1,t-1,0]) * params[blank,t]
-            elif pos != l and pos != l-1:
-                if s == 1 or seq[l] == seq[l-1]:   # the first label or same label twice
-                    alphas[s,t,0] = (alphas[s,t-1,0] + alphas[s-1,t-1,0]) * params[seq[l],t]
-                else:
-                    alphas[s,t,0] = (alphas[s,t-1,0] + alphas[s-1,t-1,0] + alphas[s-2,t-1,0]) \
-                        * params[seq[l],t]
-            elif pos == l-1: #last token is the arbitrary token, need to collect the probability from the additional dimension
-                sum = check_arbitrary(alphas, s-2, t-1, seq[l]-1)  ##remove the entry of the "l"th token in the last dim, because it's not allowed for a direct transfer for dublicated label
-                alphas[s,t,0] = (alphas[s,t-1,0] + alphas[s-1,t-1,0] + sum) * params[seq[l],t]
-            else: #current pos can be non-blank arbitrary tokens, keep the same token if already in the state of t-1
-                skip_prob = alphas[s-2,t-1,0] * params[1:,t]  
-                skip_prob[seq[l] - 1] = 0   #need to remove the pos of the same label,because it's not allowed to skip for duplicated labels 
-                alphas[s,t,:] = (alphas[s,t-1,:] + alphas[s-1,t-1,0]) * params[1:,t] + skip_prob
-         
-
-
-    sum = check_arbitrary(alphas, L-2, T-1)    
-    if sum: # last label is arbitrary
-        llForward = torch.log(sum + alphas[L-1, T-1, 0])
-    else:
-        llForward = torch.log(alphas[L-1, T-1, 0] + alphas[L-2, T-1, 0])
-	
-    return -llForward
-
-
 def single_process(example, p_tokenizer, processor, model, out_path):
     row = example
     proc_id = str(os.getpid())
@@ -182,21 +105,22 @@ def single_process(example, p_tokenizer, processor, model, out_path):
         logits = return_dict["logits"].squeeze(0) 
         post_mat = logits.softmax(dim=-1)
 
-        #step 2, compute the GOP
+        #compute the GOP-AF-features
         pids = labels.tolist()
-        gop_list = []
         num_token = logits.shape[1]
         for i,pid in enumerate(pids):
+            ## The LPP is placed at the first dimension 
             gop_feats = [log_like_total]
             for sub_pid in range(num_token):
                 new_labels = labels.clone().detach()
                 if sub_pid == 0:
-                    ##remove the token
+                    ##remove the token, for deletion error
                     new_labels = torch.cat([new_labels[:i], new_labels[i+1:]])
                 else:
+                    ##for all the substituion errors and correct 
                     new_labels[i] = sub_pid
                 ctc = ctc_loss(post_mat.transpose(0,1), new_labels, blank=0)
-                gop_feats.append(-torch.log(ctc))
+                ##the LPRs  
                 gop_feats.append(-log_like_total-torch.log(ctc))
             feat_s = ",".join([ str(torch.round(feat,decimals=3).numpy()) for feat in gop_feats])
             f.write("%d %s %s\n"%(i, p_tokenizer._convert_id_to_token(int(pid)), feat_s))
