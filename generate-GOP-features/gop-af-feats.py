@@ -184,13 +184,20 @@ def single_process(example, p_tokenizer, processor, model, out_path):
 
         #step 2, compute the GOP
         pids = labels.tolist()
+        gop_list = []
+        num_token = logits.shape[1]
         for i,pid in enumerate(pids):
             gop_feats = [log_like_total]
-            new_labels = labels.clone().detach()
-            new_labels = torch.cat([new_labels[:i], new_labels[i+1:]])
-            ctc = ctc_loss(post_mat.transpose(0,1), new_labels, blank=0)
-            gop_feats.append(-torch.log(ctc))
-            gop_feats.append(-log_like_total-torch.log(ctc))
+            for sub_pid in range(num_token):
+                new_labels = labels.clone().detach()
+                if sub_pid == 0:
+                    ##remove the token
+                    new_labels = torch.cat([new_labels[:i], new_labels[i+1:]])
+                else:
+                    new_labels[i] = sub_pid
+                ctc = ctc_loss(post_mat.transpose(0,1), new_labels, blank=0)
+                gop_feats.append(-torch.log(ctc))
+                gop_feats.append(-log_like_total-torch.log(ctc))
             feat_s = ",".join([ str(torch.round(feat,decimals=3).numpy()) for feat in gop_feats])
             f.write("%d %s %s\n"%(i, p_tokenizer._convert_id_to_token(int(pid)), feat_s))
         f.write("\n")
@@ -219,7 +226,7 @@ if __name__ == "__main__":
 
     # load dataset and read soundfiles
     ds= load_dataset_local_from_dict(csv_path)
-    ds.map(single_process, fn_kwargs={"p_tokenizer":p_tokenizer, "processor":processor, "model":model, "out_path":sys.argv[4]}, num_proc=10) 
+    ds.map(single_process, fn_kwargs={"p_tokenizer":p_tokenizer, "processor":processor, "model":model, "out_path":sys.argv[4]}, num_proc=2) 
     #cuda = torch.device('cuda:1')
 
 
